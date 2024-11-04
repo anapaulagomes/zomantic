@@ -1,9 +1,10 @@
-from zotero import get_items_added_this_week
-from semantic_scholar import get_recommendations
+from zomantic.zotero import get_items_added_this_week
+from zomantic.semantic_scholar import get_recommendations
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
+
 
 def main():
     zotero_api_key = os.getenv("ZOTERO_API_KEY")
@@ -19,6 +20,7 @@ def main():
         print(f"Authors: {', '.join(author['name'] for author in recommendation['authors'])}")
         print(f"URL: {recommendation['url']}")
         print()
+
 
 if __name__ == "__main__":
     main()

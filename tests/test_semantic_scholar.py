@@ -1,15 +1,17 @@
 import pytest
-import requests
 from unittest.mock import patch
-from semantic_scholar import get_recommendations
+from zomantic.semantic_scholar import get_recommendations
+
 
 @pytest.fixture
 def semantic_scholar_api_key():
     return "test_semantic_scholar_api_key"
 
+
 @pytest.fixture
 def paper_ids():
     return ["paper1", "paper2"]
+
 
 @pytest.fixture
 def semantic_scholar_response():
@@ -27,6 +29,7 @@ def semantic_scholar_response():
             }
         ]
     }
+
 
 @patch("requests.post")
 def test_get_recommendations(mock_post, semantic_scholar_api_key, paper_ids, semantic_scholar_response):

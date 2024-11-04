@@ -1,8 +1,11 @@
+import os
+
 import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def get_items_added_from(api_key, user_id, start_date):
     url = f"https://api.zotero.org/users/{user_id}/items"
@@ -16,6 +19,7 @@ def get_items_added_from(api_key, user_id, start_date):
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     return response.json()
+
 
 def get_items_added_this_week(api_key):
     user_id = os.getenv("ZOTERO_USER_ID")

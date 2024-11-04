@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
-from main import main
+from zomantic.main import main
+
 
 @pytest.fixture
 def zotero_items():
@@ -8,6 +9,7 @@ def zotero_items():
         {"data": {"key": "item1"}},
         {"data": {"key": "item2"}}
     ]
+
 
 @pytest.fixture
 def recommendations():
@@ -26,8 +28,9 @@ def recommendations():
         ]
     }
 
-@patch("main.get_items_added_this_week")
-@patch("main.get_recommendations")
+
+@patch("zomantic.main.get_items_added_this_week")
+@patch("zomantic.main.get_recommendations")
 def test_main(mock_get_recommendations, mock_get_items_added_this_week, zotero_items, recommendations):
     mock_get_items_added_this_week.return_value = zotero_items
     mock_get_recommendations.return_value = recommendations

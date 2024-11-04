@@ -6,6 +6,9 @@ authors = ["Ana Paula Gomes"]
 license = "MIT"
 readme = "README.md"
 
+[tool.poetry.scripts]
+peneira = "zomantic.main:main"
+
 [tool.poetry.dependencies]
 python = "^3.11"
 requests = "^2.32.3"

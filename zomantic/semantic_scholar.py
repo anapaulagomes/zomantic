@@ -1,5 +1,6 @@
 import requests
 
+
 def get_recommendations(api_key, paper_ids):
     url = "https://api.semanticscholar.org/recommendations/v1/papers"
     headers = {
