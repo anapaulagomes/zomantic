@@ -1,13 +1,18 @@
 [tool.poetry]
 name = "zomantic"
 version = "0.1.0"
-description = "Semantic Scholar's recommentations from Zotero items"
+description = "Feed Semantic Scholar's library with Zotero items"
 authors = ["Ana Paula Gomes"]
 license = "MIT"
 readme = "README.md"
 
+[tool.poetry.scripts]
+zomantic = "zomantic.cli:main"
+
 [tool.poetry.dependencies]
 python = "^3.11"
+python-dotenv = "^1.0.1"
+selenium = "^4.26.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
