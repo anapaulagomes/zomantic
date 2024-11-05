@@ -13,6 +13,7 @@ zomantic = "zomantic.cli:main"
 python = "^3.11"
 python-dotenv = "^1.0.1"
 selenium = "^4.26.1"
+pyzotero = "^1.5.25"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
