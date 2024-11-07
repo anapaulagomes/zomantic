@@ -1,4 +1,6 @@
 import os
+from typing import Any, Dict
+
 from dotenv import load_dotenv
 from pyzotero import zotero
 
@@ -53,32 +55,17 @@ def fetch_all_items_from_zotero():
     all_items = zot.everything(zot.items())
     print(f"{len(all_items)} items retrieved from the library")
 
-    articles = []
+    selected_items = []
     for item in all_items:
         if item["data"]["itemType"] in TO_BE_SKIPPED:
             continue
 
-        keywords = [tag["tag"] for tag in item["data"]["tags"]]
-        authors = []
-        for creator in item["data"].get("creators", []):
-            first_last_names = {'firstName', 'lastName'}
-            creator_keys = creator.keys()
-            if creator_keys & first_last_names:
-                authors.append(f"{creator['firstName']} {creator['lastName']}")
+        selected_items.append(item)
+    print(f"{len(selected_items)} items were selected")
+    return selected_items
 
-        article = {
-            "title": item["data"]["title"],
-            "abstract": item["data"].get("abstractNote"),
-            "journal": item["data"].get("journalAbbreviation"),
-            "doi": item["data"].get("DOI"),
-            "authors": authors,
-            "year": item["data"]["date"],
-            "keywords": keywords,
-            "key": item["data"]["key"],
-            "article_type": item["data"]["itemType"],
-            "language": item["data"].get("language"),
-            "url": item["data"]["url"],
-        }
-        articles.append(article)
-    print(f"{len(articles)} articles were found")
-    return articles
+
+def append_extra(extra: str, new_info: Dict[str, Any]) -> str:
+    for key, value in new_info.items():
+        extra += f"\n{key}: {value}"
+    return extra
