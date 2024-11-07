@@ -1,6 +1,6 @@
 import pytest
 
-from zomantic.zotero import append_extra
+from zomantic.zotero import append_extra, filter_articles_without_extra_key
 
 
 class TestAppendExtra:
@@ -17,3 +17,27 @@ class TestAppendExtra:
         }
         expected_extra = f"{extra}\nSemantic Scholar ID: {semantic_id['Semantic Scholar ID']}"
         assert append_extra(extra, semantic_id) == expected_extra
+
+
+class TestFilterArticlesWithoutExtraKey:
+    def test_filter_articles_without_extra_key(self):
+        items = [{
+            'data': {
+                'extra': (
+                    "Accepted: 2020-08-28T08:44:50Z\n"
+                    "Publisher: World Health Organization = Organisation mondiale de la Santé"
+                )
+            }
+        }, {
+            'data': {
+                'extra': "PMCID: PMC6697516\nPMID: 23741561"
+            }
+        }, {
+            'data': {
+                'extra': 'Semantic Scholar ID: 123456'
+            }
+        }
+        ]
+        result = filter_articles_without_extra_key(items, 'Semantic Scholar ID')
+        assert len(result) == 2
+        assert result == items[:2]

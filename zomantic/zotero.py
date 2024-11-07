@@ -69,3 +69,7 @@ def append_extra(extra: str, new_info: Dict[str, Any]) -> str:
     for key, value in new_info.items():
         extra += f"\n{key}: {value}"
     return extra
+
+
+def filter_articles_without_extra_key(items, key):
+    return [item for item in items if key not in item['data']['extra']]
