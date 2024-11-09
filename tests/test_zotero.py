@@ -21,23 +21,16 @@ class TestAppendExtra:
 
 class TestFilterArticlesWithoutExtraKey:
     def test_filter_articles_without_extra_key(self):
-        items = [{
-            'data': {
-                'extra': (
-                    "Accepted: 2020-08-28T08:44:50Z\n"
-                    "Publisher: World Health Organization = Organisation mondiale de la Santé"
-                )
-            }
-        }, {
-            'data': {
-                'extra': "PMCID: PMC6697516\nPMID: 23741561"
-            }
-        }, {
-            'data': {
-                'extra': 'Semantic Scholar ID: 123456'
-            }
+        items = {
+            'xxxx': {'data': {'extra': (
+                "Accepted: 2020-08-28T08:44:50Z\n"
+                "Publisher: World Health Organization = Organisation mondiale de la Santé"
+            )}},
+            'aaaa': {'data': {'extra': "PMCID: PMC6697516\nPMID: 23741561"}},
+            'bbbb': {'data': {'extra': 'Semantic Scholar ID: 123456'}},
         }
-        ]
+
         result = filter_articles_without_extra_key(items, 'Semantic Scholar ID')
         assert len(result) == 2
-        assert result == items[:2]
+        assert result.get('xxxx')
+        assert result.get('aaaa')

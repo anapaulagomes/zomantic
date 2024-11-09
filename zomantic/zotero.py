@@ -52,8 +52,17 @@ TO_BE_SKIPPED = [
 ]
 
 
-def fetch_all_items_from_zotero():
-    all_items = zot.everything(zot.items())
+def fetch_all_items_from_zotero(collection_name=None):
+    if collection_name:
+        collections = zot.collections(q=collection_name, limit=None)
+        if not collections:
+            print(f"Collection {collection_name} not found")
+            return {}
+        collection_id = collections[0]['key']
+        all_items = zot.collection_items(collection_id)
+    else:
+        all_items = zot.everything(zot.items())
+
     print(f"{len(all_items)} items retrieved from the library")
 
     selected_items = {}

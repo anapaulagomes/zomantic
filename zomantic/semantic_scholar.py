@@ -1,3 +1,5 @@
+import random
+
 import requests
 from dotenv import load_dotenv
 import os
@@ -57,28 +59,27 @@ def get_paper_ids(items):
     for zotero_key, item in items.items():
         response = requests.get(
             f'https://api.semanticscholar.org/graph/v1/paper/search/match?'
-            f'query={item["data"]["title"]}&fields=title,url,paperId',
+            f'query={item["data"]["title"]}&fields=title,paperId',
         )
         if response.ok:
             data = response.json()
             if data:
+                paper_id = data['data'][0].get('paperId')
                 items_paper_ids[zotero_key] = {
-                    'paper_id': data['data'][0]['paperId'],
-                    'url': data['data'][0]['url'],
+                    'paper_id': paper_id,
                     'item': item
                 }
     return items_paper_ids
 
 
-def store_papers_in_semantic_scholar_library(items):
+def store_papers_in_semantic_scholar_library(urls):
     is_semantic_scholar_logged_in, driver = login()
     if not is_semantic_scholar_logged_in:
         raise Exception("Could not login to Semantic Scholar")
 
-    print(f'Attempt to store {len(items)} items...')
+    print(f'Attempt to store {len(urls)} items...')
     count = 0
-    for item in items:
-        url = item['data']['url']
+    for url in urls:
         print(url)
         driver.get(url)
         WebDriverWait(driver, 10).until(expected_conditions.url_to_be(url))
@@ -96,6 +97,8 @@ def store_papers_in_semantic_scholar_library(items):
             count += 1
         except NoSuchElementException as e:
             print(e)
+
+        time.sleep(random.randint(1, 3))
 
     print(f'Finished saving papers to Semantic Scholar Library. Attempted to save {count} papers.')
     print('Check them out: https://www.semanticscholar.org/me/library/all')
