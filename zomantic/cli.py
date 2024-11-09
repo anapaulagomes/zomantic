@@ -2,6 +2,7 @@ from zomantic.semantic_scholar import get_paper_ids, store_papers_in_semantic_sc
 from zomantic.zotero import fetch_all_items_from_zotero, filter_articles_without_extra_key, \
     add_semantic_scholar_ids_to_items
 import re
+import argparse
 
 
 def get_all_paper_urls(all_items, updated_items):
@@ -17,7 +18,10 @@ def get_all_paper_urls(all_items, updated_items):
 
 
 def main():
-    all_items = fetch_all_items_from_zotero()
+    parser = argparse.ArgumentParser(description='Store Zotero papers in Semantic Scholar library')
+    parser.add_argument('-c', '--collection-name', type=str, help='Zotero collection name')
+    args = parser.parse_args()
+    all_items = fetch_all_items_from_zotero(collection_name=args.collection_name)
 
     filtered_articles = filter_articles_without_extra_key(all_items, 'Semantic Scholar ID')
     zotero_semantic_scholar_ids = get_paper_ids(filtered_articles)
