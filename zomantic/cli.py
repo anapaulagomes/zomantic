@@ -5,16 +5,21 @@ import re
 import argparse
 
 
-def get_all_paper_urls(all_items, updated_items):
-    urls = []
+def get_all_papers(all_items, updated_items):
+    papers = []
     pattern = re.compile(r'Semantic Scholar ID\: (.*)$')
     for zotero_key, zotero_item in all_items.items():
         if updated_items.get(zotero_key):
             all_items[zotero_key] = updated_items[zotero_key]
-        all_items[zotero_key]['data']['extra']
-        match = pattern.search(zotero_item['data']['extra'])
-        urls.append(f'https://www.semanticscholar.org/paper/{match.group(1)}')
-    return urls
+
+        match = pattern.search(all_items[zotero_key]['data']['extra'])
+        paper_id = match.group(1)
+        paper_info = {
+            'title': zotero_item['data']['title'],
+            'paper_id': paper_id
+        }
+        papers.append(paper_info)
+    return papers
 
 
 def main():
@@ -27,7 +32,7 @@ def main():
     zotero_semantic_scholar_ids = get_paper_ids(filtered_articles)
     updated_items = add_semantic_scholar_ids_to_items(zotero_semantic_scholar_ids)
 
-    urls = get_all_paper_urls(all_items, updated_items)
+    urls = get_all_papers(all_items, updated_items)
 
     store_papers_in_semantic_scholar_library(urls)
 

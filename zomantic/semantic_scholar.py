@@ -72,33 +72,51 @@ def get_paper_ids(items):
     return items_paper_ids
 
 
-def store_papers_in_semantic_scholar_library(urls):
-    is_semantic_scholar_logged_in, driver = login()
-    if not is_semantic_scholar_logged_in:
-        raise Exception("Could not login to Semantic Scholar")
-
-    print(f'Attempt to store {len(urls)} items...')
+def store_papers_in_semantic_scholar_library(papers):
+    print(f'Attempt to store {len(papers)} items...')
     count = 0
-    for url in urls:
-        print(url)
-        driver.get(url)
-        WebDriverWait(driver, 10).until(expected_conditions.url_to_be(url))
-
-        try:
-            save_field = driver.find_element(By.XPATH, "//span[text()='Save to Library']")
-            save_field.click()
-            WebDriverWait(driver, 10).until(
-                expected_conditions.presence_of_element_located(
-                    (By.XPATH, "//span[text()='In Library']")
-                )
-            )
-            close_button = driver.find_element(By.XPATH, '//button[contains(@class, "shelf__close-button')
-            close_button.click()
+    for paper in papers:
+        print(paper['url'])
+        response = make_request(paper['paper_id'], paper['title'])
+        if response.ok:
             count += 1
-        except NoSuchElementException as e:
-            print(e)
-
         time.sleep(random.randint(1, 3))
 
     print(f'Finished saving papers to Semantic Scholar Library. Attempted to save {count} papers.')
     print('Check them out: https://www.semanticscholar.org/me/library/all')
+
+
+def make_request(paper_id, paper_title):
+    url = "https://www.semanticscholar.org/api/1/library/folders/entries/bulk"
+    headers = {
+        "Host": "www.semanticscholar.org",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0",
+        "Accept": "*/*",
+        "Accept-Language": "pt-BR,en-US;q=0.8,en;q=0.5,de;q=0.3",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Prefer": "safe",
+        "Cache-Control": "no-cache,no-store,must-revalidate,max-age=-1",
+        "Content-Type": "application/json",
+        "X-S2-UI-Version": "8c3d74bcd9b3357febf74868a2a34ed576c6fd0b",
+        "X-S2-Client": "webapp-browser",
+        "Origin": "https://www.semanticscholar.org",
+        "Referer": url,
+        "Cookie": (),  # TODO test without cookies
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "Priority": "u=0",
+        "TE": "trailers",
+    }
+
+    data = {
+        "paperId": paper_id,
+        "paperTitle": paper_title,
+        "folderIds": [],
+        "annotationState": None,
+        "sourceType": "Library"
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    print(f"Status Code: {response.status_code}")
+    return response
