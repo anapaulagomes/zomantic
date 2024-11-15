@@ -4,52 +4,9 @@ import requests
 from dotenv import load_dotenv
 import os
 
-from selenium import webdriver
-from selenium.common import NoSuchElementException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
 import time
 
 load_dotenv()
-
-options = webdriver.FirefoxOptions()
-options.add_argument("-headless")
-
-
-def login():
-    driver = webdriver.Firefox(options=options)
-    driver.get('https://www.semanticscholar.org/me/library/all')
-    is_logged_in = False
-    try:
-        login_button = WebDriverWait(driver, 10).until(
-            expected_conditions.presence_of_element_located((By.XPATH, "//span[text()='Sign In']"))
-        )
-
-        email_field = driver.find_element(By.NAME, "email")
-        password_field = driver.find_element(By.XPATH, "//input[@type='password']")
-
-        email_field.send_keys(os.getenv("SEMANTIC_SCHOLAR_LOGIN"))
-        password_field.send_keys(os.getenv("SEMANTIC_SCHOLAR_PASSWORD"))
-
-        password_field.send_keys(Keys.RETURN)
-
-        login_button.click()
-    except Exception as e:
-        print("Login button not found:", e)
-        time.sleep(5)
-        driver.quit()
-    else:
-        WebDriverWait(driver, 10).until(expected_conditions.url_to_be("https://www.semanticscholar.org/me/library/all"))
-        WebDriverWait(driver, 10).until(
-            expected_conditions.presence_of_element_located(
-                (By.XPATH, '//h1[contains(@class, "research__page-header__headline")]')
-            )
-        )
-        print('Logged in successfully')
-        is_logged_in = True
-    return is_logged_in, driver
 
 
 def get_paper_ids(items):
@@ -77,7 +34,7 @@ def store_papers_in_semantic_scholar_library(papers):
     count = 0
     for paper in papers:
         print(paper['url'])
-        response = make_request(paper['paper_id'], paper['title'])
+        response = save_paper_to_library(paper['paper_id'], paper['title'])
         if response.ok:
             count += 1
         time.sleep(random.randint(1, 3))
@@ -86,7 +43,32 @@ def store_papers_in_semantic_scholar_library(papers):
     print('Check them out: https://www.semanticscholar.org/me/library/all')
 
 
-def make_request(paper_id, paper_title):
+def login():
+    session = requests.Session()
+
+    url = "https://www.semanticscholar.org"
+    session.get(url)
+
+    login_url = "https://www.semanticscholar.org/api/1/auth/cognito/login"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0",
+        "Content-Type": "application/json",
+        "X-S2-UI-Version": "8c3d74bcd9b3357febf74868a2a34ed576c6fd0b",
+        "X-S2-Client": "webapp-browser",
+        "Origin": "https://www.semanticscholar.org",
+        "Referer": "https://www.semanticscholar.org/",
+    }
+    data = {
+        "email": os.getenv("SEMANTIC_SCHOLAR_LOGIN"),
+        "password": os.getenv("SEMANTIC_SCHOLAR_PASSWORD"),
+    }
+
+    response = session.post(login_url, headers=headers, json=data)
+    response.raise_for_status()
+    return session
+
+
+def save_paper_to_library(paper_id, paper_title, session):
     url = "https://www.semanticscholar.org/api/1/library/folders/entries/bulk"
     headers = {
         "Host": "www.semanticscholar.org",
@@ -101,7 +83,6 @@ def make_request(paper_id, paper_title):
         "X-S2-Client": "webapp-browser",
         "Origin": "https://www.semanticscholar.org",
         "Referer": url,
-        "Cookie": (),  # TODO test without cookies
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
@@ -117,6 +98,6 @@ def make_request(paper_id, paper_title):
         "sourceType": "Library"
     }
 
-    response = requests.post(url, headers=headers, json=data)
+    response = session.post(url, headers=headers, json=data)
     print(f"Status Code: {response.status_code}")
     return response
