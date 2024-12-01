@@ -26,12 +26,16 @@ def main():
     parser = argparse.ArgumentParser(description='Store Zotero papers in Semantic Scholar library')
     parser.add_argument('-c', '--collection-name', type=str, help='Zotero collection name')
     args = parser.parse_args()
+
+    # fetch all items from zotero
     all_items = fetch_all_items_from_zotero(collection_name=args.collection_name)
 
+    # update items with semantic scholar ids
     filtered_articles = filter_articles_without_extra_key(all_items, 'Semantic Scholar ID')
     zotero_semantic_scholar_ids = get_paper_ids(filtered_articles)
     updated_items = add_semantic_scholar_ids_to_items(zotero_semantic_scholar_ids)
 
+    # now that all items have semantic scholar ids, we can store them in the library using the urls
     urls = get_all_papers(all_items, updated_items)
 
     store_papers_in_semantic_scholar_library(urls)
