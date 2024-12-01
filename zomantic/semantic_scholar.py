@@ -32,9 +32,11 @@ def get_paper_ids(items):
 def store_papers_in_semantic_scholar_library(papers):
     print(f'Attempt to store {len(papers)} items...')
     count = 0
+
+    session = login()
     for paper in papers:
-        print(paper['url'])
-        response = save_paper_to_library(paper['paper_id'], paper['title'])
+        print(paper['title'])
+        response = save_paper_to_library(paper['paper_id'], paper['title'], session)
         if response.ok:
             count += 1
         time.sleep(random.randint(1, 3))
