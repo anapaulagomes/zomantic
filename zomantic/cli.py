@@ -13,6 +13,8 @@ def get_all_papers(all_items, updated_items):
             all_items[zotero_key] = updated_items[zotero_key]
 
         match = pattern.search(all_items[zotero_key]['data']['extra'])
+        if not match:
+            continue
         paper_id = match.group(1)
         paper_info = {
             'title': zotero_item['data']['title'],
