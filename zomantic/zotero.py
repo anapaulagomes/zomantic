@@ -52,6 +52,11 @@ TO_BE_SKIPPED = [
 ]
 
 
+def fetch_all_collections():
+    collections = zot.collections()
+    return {c["key"]: c["data"]["name"] for c in collections}
+
+
 def fetch_all_items_from_zotero(collection_name=None):
     if collection_name:
         collections = zot.collections(q=collection_name, limit=None)

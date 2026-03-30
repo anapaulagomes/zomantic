@@ -29,14 +29,23 @@ def get_paper_ids(items):
     return items_paper_ids
 
 
-def store_papers_in_semantic_scholar_library(papers):
+def store_papers_in_semantic_scholar_library(papers, session, collection_folder_ids=None):
+    """Save papers to the Semantic Scholar library, placing each in its matching folder(s).
+
+    collection_folder_ids: {collection_name: ss_folder_id} mapping.
+    papers: each entry may include 'collection_keys' (list of Zotero collection keys)
+            and the caller provides a collections dict {key: name} to resolve names.
+    """
+    if collection_folder_ids is None:
+        collection_folder_ids = {}
+
     print(f'Attempt to store {len(papers)} items...')
     count = 0
 
-    session = login()
     for paper in papers:
         print(paper['title'])
-        response = save_paper_to_library(paper['paper_id'], paper['title'], session)
+        folder_ids = paper.get('folder_ids', [])
+        response = save_paper_to_library(paper['paper_id'], paper['title'], session, folder_ids=folder_ids)
         if response.ok:
             count += 1
         time.sleep(random.randint(1, 3))
@@ -70,36 +79,60 @@ def login():
     return session
 
 
-def save_paper_to_library(paper_id, paper_title, session):
-    url = "https://www.semanticscholar.org/api/1/library/folders/entries/bulk"
-    headers = {
-        "Host": "www.semanticscholar.org",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0",
-        "Accept": "*/*",
-        "Accept-Language": "pt-BR,en-US;q=0.8,en;q=0.5,de;q=0.3",
-        "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Prefer": "safe",
-        "Cache-Control": "no-cache,no-store,must-revalidate,max-age=-1",
-        "Content-Type": "application/json",
-        "X-S2-UI-Version": "8c3d74bcd9b3357febf74868a2a34ed576c6fd0b",
-        "X-S2-Client": "webapp-browser",
-        "Origin": "https://www.semanticscholar.org",
-        "Referer": url,
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "Priority": "u=0",
-        "TE": "trailers",
-    }
+_HEADERS = {
+    "Host": "www.semanticscholar.org",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0",
+    "Accept": "*/*",
+    "Accept-Language": "pt-BR,en-US;q=0.8,en;q=0.5,de;q=0.3",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Prefer": "safe",
+    "Cache-Control": "no-cache,no-store,must-revalidate,max-age=-1",
+    "Content-Type": "application/json",
+    "X-S2-UI-Version": "8c3d74bcd9b3357febf74868a2a34ed576c6fd0b",
+    "X-S2-Client": "webapp-browser",
+    "Origin": "https://www.semanticscholar.org",
+    "Referer": "https://www.semanticscholar.org/api/1/library/folders/entries/bulk",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "Priority": "u=0",
+    "TE": "trailers",
+}
 
+
+def get_or_create_folder(folder_name, session):
+    url = (
+        "https://www.semanticscholar.org/api/1/library/folders"
+        "?entrySourceTypeFilter=AuthorLibraryFolder&entrySourceTypeFilter=Library"
+        "&entrySourceTypeFilter=Feed&folderSourceTypeFilter=AllPapers"
+        "&folderSourceTypeFilter=AuthorLibraryFolder&folderSourceTypeFilter=Feed"
+        "&folderSourceTypeFilter=Library"
+    )
+    folders = session.get(url, headers=_HEADERS).json().get("folders", [])
+    for folder in folders:
+        if folder["name"] == folder_name:
+            return folder["id"]
+
+    response = session.post(
+        "https://www.semanticscholar.org/api/1/library/folders",
+        json={"name": folder_name, "recommendationStatus": "On"},
+        headers=_HEADERS,
+    )
+    return response.json()["folder"]["id"]
+
+
+def save_paper_to_library(paper_id, paper_title, session, folder_ids=None):
+    if folder_ids is None:
+        folder_ids = []
+    url = "https://www.semanticscholar.org/api/1/library/folders/entries/bulk"
     data = {
         "paperId": paper_id,
         "paperTitle": paper_title,
-        "folderIds": [],
+        "folderIds": folder_ids,
         "annotationState": None,
         "sourceType": "Library"
     }
 
-    response = session.post(url, headers=headers, json=data)
+    response = session.post(url, headers=_HEADERS, json=data)
     print(f"Status Code: {response.status_code}")
     return response
