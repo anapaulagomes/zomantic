@@ -16,7 +16,7 @@ pyzotero = "^1.5.25"
 requests = "^2.32.4"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
+pytest = ">=8.3.3,<10.0.0"
 
 [build-system]
 requires = ["poetry-core"]
